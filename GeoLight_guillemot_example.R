@@ -191,11 +191,13 @@ plot(coords[,2])
 
 
 # Kernels for periods ------
+# install.packages("BBMM")
+# library("BBMM")
+# help("BBMM")
+# ?kernelBB
 
 
-
-
-
+http://www.inside-r.org/packages/cran/adehabitatHR/docs/kernelbb
 
 
 
