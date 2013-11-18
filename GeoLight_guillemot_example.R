@@ -24,8 +24,9 @@ tFirst <- NULL
 tSecond <- NULL
 ttype <- NULL
 
+
 n <- 1   # Keep count of number of transition pairs
-# i <- 2
+# i <- 2    # For testing the for loop below
 
 for(i in 1:(length(gls_data$type)-1)){
   
@@ -66,8 +67,8 @@ head(tab)
 
 tab.original <- tab
 # tab  <- tab.original[520:1130,]
-tab  <- tab.original[700:1200,]
-tab  <- tab.original[50:530,]
+tab  <- tab.original[700:1200,]      # Year 2, 2010-2011 - excludes most of breeding period
+# tab  <- tab.original[50:530,]        # Year 1, 2009-2010
 
 # tab  <- tab.original[580:1130,]
 
@@ -76,8 +77,8 @@ tab  <- tab.original[50:530,]
 tab.original[700,]
 tab.original[1200,]
 
-tab.original[50,]
-tab.original[530,]
+# tab.original[50,]
+# tab.original[530,]
 
 # 3) Analysis -------------------------
 
@@ -89,13 +90,10 @@ toFilter <- loessFilter(tab$tFirst, tab$tSecond, tab$type, k, plot = TRUE)
 # Remove outliers
 tab <- tab[toFilter,]
 
-?loessFilter
+# ?loessFilter     # Lookup help for function
 
-# ?loessFilter
 
 # Stationary periods
-# days = 20                                 # lower threshold length of stationary period
-# quantile = 0.90                           # probability threshold for stationary site selection
 periods <- changeLight(tab$tFirst, tab$tSecond, tab$type,
                        , plot = TRUE, quantile = 0.97,
                        days = 15, rise.prob = NA) 
@@ -106,11 +104,11 @@ periods <- changeLight(tab$tFirst, tab$tSecond, tab$type,
 # ?changeLight
 
 # In-habitat calibration
-# known.coord = c(17.958419, 57.287751)     #Karlsö
-# inHabitatCalib <- getElevation(tab$tFirst[periods$site == 1],
-#                                tab$tSecond[periods$site == 1],
-#                                tab$type[periods$site == 1],
-#                                known.coord, plot = TRUE) 
+karlso = c(17.958419, 57.287751)     #Karlsö
+inHabitatCalib <- getElevation(tab$tFirst[periods$site == 1],
+                               tab$tSecond[periods$site == 1],
+                               tab$type[periods$site == 1],
+                               known.coord = karlso, plot = TRUE) 
 
 
 HECalib <- NULL
@@ -127,36 +125,25 @@ HECalib <- HillEkstromCalib2(tab$tFirst, tab$tSecond, tab$type,
 
 
 HECalib
+
+# If you want to change the value for one period, e.g. if you use in habitat calibration rather than Hill-Ekstrom for breeding area
 # HECalib[1] <- -4
 
-# HECalib2
-# HECalib25
-# HECalib3
-# HECalib35
-# HECalib45
-# HECalib55
-# HECalib
-
-
-
-# ?HillEkstromCalib
-
-# ?coord
+# Sometimes you get NA (missing values) values for some areas, I think when there are two few points to reliably estimate elevation.
+# Here we replace in missing values with a some value (-4 here)
 #  HECalib[is.na(HECalib)] <- -4
 
 
-# Positioning
-coords <- coord(tab$tFirst,tab$tSecond,tab$type, HECalib)             ### change !!
-coords.fixed <- coord(tab$tFirst,tab$tSecond,tab$type, mean(HECalib))             ### change !!
-coords.fixedwrong <- coord(tab$tFirst,tab$tSecond,tab$type, -6)             ### change !!
-
+# Positioning - comparing different sun-elevation values
+coords <- coord(tab$tFirst,tab$tSecond,tab$type, HECalib)            
+coords.fixed <- coord(tab$tFirst,tab$tSecond,tab$type, mean(HECalib))           
+coords.fixedwrong <- coord(tab$tFirst,tab$tSecond,tab$type, -6)            
 
 
 par(mfrow=c(1,1),mar=c(0.1,0.1,0.1,0.1))
-siteMap2(coords.fixed, periods$site, points = TRUE,
+siteMap2(coords, periods$site, points = TRUE,
          xlim = c(14,23), ylim = c(53,61), xlab = "Longitude",
          ylab = "Latitude", lwd = 1, lty = 0, pch = 20, cex = 1, add = FALSE)
-
 
 
 par(mfrow=c(1,1),mar=c(0.1,0.1,0.1,0.1))
@@ -164,11 +151,21 @@ siteMap2(coords.fixed, periods$site, points = TRUE,
         xlim = c(14,23), ylim = c(53,61), xlab = "Longitude",
         ylab = "Latitude", lwd = 1, lty = 0, pch = 20, cex = 1, add = FALSE)
 
+par(mfrow=c(1,1),mar=c(0.1,0.1,0.1,0.1))
+siteMap2(coords.fixedwrong, periods$site, points = TRUE,
+         xlim = c(14,23), ylim = c(53,61), xlab = "Longitude",
+         ylab = "Latitude", lwd = 1, lty = 0, pch = 20, cex = 1, add = FALSE)
+
 # cite("GeoLight")
 
-
-
-
+f <- periods$site == 1
+siteMap2(coords[f,], periods$site[f], points = TRUE,
+         xlim = c(12,23), ylim = c(52,62), xlab = "Longitude",
+         ylab = "Latitude", lwd = 1, lty = 0, pch = 20, cex = 1, add = FALSE)
+f <- periods$site == 2
+siteMap2(coords[f,], periods$site[f], points = TRUE,
+         xlim = c(12,23), ylim = c(52,62), xlab = "Longitude",
+         ylab = "Latitude", lwd = 1, lty = 0, pch = 20, cex = 1, add = FALSE)
 f <- periods$site == 3
 siteMap2(coords[f,], periods$site[f], points = TRUE,
          xlim = c(12,23), ylim = c(52,62), xlab = "Longitude",
@@ -177,14 +174,15 @@ f <- periods$site == 4
 siteMap2(coords[f,], periods$site[f], points = TRUE,
          xlim = c(12,23), ylim = c(52,62), xlab = "Longitude",
          ylab = "Latitude", lwd = 1, lty = 0, pch = 20, cex = 1, add = FALSE)
+f <- periods$site == 5
+siteMap2(coords[f,], periods$site[f], points = TRUE,
+         xlim = c(12,23), ylim = c(52,62), xlab = "Longitude",
+         ylab = "Latitude", lwd = 1, lty = 0, pch = 20, cex = 1, add = FALSE)
 
 
-# siteMap2(coords, unique(periods$site),points = TRUE,
-#          xlim = c(10,25),ylim=c(50,65),xlab="Longitude",
-#          ylab="Latitude",lwd=1,lty=0,pch=20,cex=1,add=FALSE)
 
-plot(coords[,1])
-plot(coords[,2])
+plot(coords[,1], ylim = c(16,21.2))
+plot(coords[,2], ylim = c(52,63))
 
 
 
@@ -196,20 +194,17 @@ plot(coords[,2])
 # help("BBMM")
 # ?kernelBB
 
+# View help online
+browseURL("http://www.inside-r.org/packages/cran/adehabitatHR/docs/kernelbb")
 
-http://www.inside-r.org/packages/cran/adehabitatHR/docs/kernelbb
+
+
 
 
 
 
 
 # Functions ------
-
-
-
-
-
-
 
 # siteMap function (preliminary beta version!)
 siteMap2 <- function(coord,site,points=TRUE,map.range=c("EuroAfrica","AustralAsia","America","World"),
