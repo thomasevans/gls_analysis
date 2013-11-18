@@ -68,7 +68,7 @@ head(tab)
 tab.original <- tab
 # tab  <- tab.original[520:1130,]
 tab  <- tab.original[700:1200,]      # Year 2, 2010-2011 - excludes most of breeding period
-# tab  <- tab.original[50:530,]        # Year 1, 2009-2010
+tab  <- tab.original[50:530,]        # Year 1, 2009-2010
 
 # tab  <- tab.original[580:1130,]
 
@@ -77,8 +77,8 @@ tab  <- tab.original[700:1200,]      # Year 2, 2010-2011 - excludes most of bree
 tab.original[700,]
 tab.original[1200,]
 
-# tab.original[50,]
-# tab.original[530,]
+tab.original[50,]
+tab.original[530,]
 
 # 3) Analysis -------------------------
 
@@ -179,8 +179,8 @@ siteMap2(coords[f,], periods$site[f], points = TRUE,
          xlim = c(12,23), ylim = c(52,62), xlab = "Longitude",
          ylab = "Latitude", lwd = 1, lty = 0, pch = 20, cex = 1, add = FALSE)
 
-
-
+str(periods)
+length(coords)
 plot(coords[,1], ylim = c(16,21.2))
 plot(coords[,2], ylim = c(52,63))
 
@@ -197,11 +197,87 @@ plot(coords[,2], ylim = c(52,63))
 # View help online
 browseURL("http://www.inside-r.org/packages/cran/adehabitatHR/docs/kernelbb")
 
+# install.packages("adehabitatHR")
+library("adehabitatHR")
+# str(tab)
+# ?as.ltraj
+# Make into ltraj object for package adehabitatHR
+coords.ltraj <- as.ltraj(xy = coords, date = tab$tFirst, id = periods$site)
+
+plot(coords.ltraj, ylim = c(50,65))
+
+
+## on the relocations
+sig2 <- 0.05
+## and that sig1=0.1
+sig1 <- 0.1
+
+kbb <- kernelbb(coords.ltraj, sig1 = sig1,
+                 sig2 = sig2)
+image(kbb)
+
+
+library("adehabitatHR")
+xy <- as.data.frame(xy)
+names(xy) <- c("x", "y")
+coordinates(xy) <- c("x","y")
+kud <- kernelUD(xy)
+
+
+f <- !is.na(coords[,1]) & !is.na(coords[,2])  & periods$site == 1 #time period....
+xy <- t(rbind(coords[f,1],coords[f,2]))
+xy <- as.data.frame(xy)
+names(xy) <- c("x", "y")
+coordinates(xy) <- c("x","y")
+# str(xy)
+kud <- kernelUD(xy)
+par(mfrow = c(1,1))
+image(kud)
+
+# points
+par(mfrow=c(1,1),mar=c(0.1,0.1,0.1,0.1))
+siteMap2(coords, periods$site, points = TRUE,
+         xlim = c(14,23), ylim = c(53,61), xlab = "Longitude",
+         ylab = "Latitude", lwd = 1, lty = 0, pch = 20, cex = 1, add = FALSE)
 
 
 
 
 
+siteMap2(coords[f,], periods$site[f], points = FALSE,
+         xlim = c(12,23), ylim = c(52,62), xlab = "Longitude",
+         ylab = "Latitude", lwd = 1, lty = 0, pch = 20, cex = 1, add = FALSE)
+# plot(getverticeshr(kud, 20), add = TRUE)
+cols <- rainbow(length(levels(as.factor(periods$site)))-1)
+# cols <- cols[1:length(levels(as.factor(periods$site)))]
+# cols <- cols[1:length(levels(periods$site))]
+# i <- 3
+# for(i in c(1,2,4)){
+# for(i in 1:length(unique(periods$site))){
+
+for(i in c(1,3)){
+
+  f <- !is.na(coords[,1]) & !is.na(coords[,2])  & periods$site == i #time period....
+  xy <- t(rbind(coords[f,1],coords[f,2]))
+  xy <- as.data.frame(xy)
+  names(xy) <- c("x", "y")
+  coordinates(xy) <- c("x","y")
+  # str(xy)
+  kud <- kernelUD(xy)
+  plot(getverticeshr(kud, 5), col = NA, add = TRUE, lwd = 2,  border = cols[i])
+  plot(getverticeshr(kud, 25), col = NA, add = TRUE, lty = 4, lwd = 2,  border = cols[i])
+  plot(getverticeshr(kud, 50), col = NA, add = TRUE, lty = 3, lwd = 1,  border = cols[i])
+  
+#   Polygons(getverticeshr(kud, 20), border= as.numeric(i))
+}
+# dev.off()
+
+# ?SpatialPolygonsDataFrame
+
+liker(coords.ltraj, sig2 = 1000, rangesig1 = c(1000, 10000))
+
+tata <- kernelbb(coords.ltraj, sig1 = 6.23, sig2 = 58, grid = 100)
+image(tata)
 
 
 # Functions ------
@@ -255,6 +331,8 @@ siteMap2 <- function(coord,site,points=TRUE,map.range=c("EuroAfrica","AustralAsi
   sites <- length(levels(site[site != 0]))
   site2 <- unique(site[site != 0])
 #   site2 <- site2[2:length(site2)]   # Test
+   col <-  rainbow(length(levels(as.factor(site)))-1)  #test
+
   
   if(points == TRUE){
     for(i in 1:sites){
