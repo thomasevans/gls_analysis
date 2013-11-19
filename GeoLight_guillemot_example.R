@@ -4,11 +4,12 @@
 # Here I use the GeoLight package to analyse geolocator data from a common guillemot using the GeoLight R package.
 
 # Packages --------
-# install.packages("GeoLight")
+install.packages("GeoLight")
 library(GeoLight)
 
 # Set working-directory --------
 setwd("D:/Dropbox/R_projects/gls_analysis/examples/aak970_2009_2011")
+warning("Change to your R working directory - e.g. where you have stored the geolocator data.")
 
 # Read in data  --------
 gls_data <- read.delim("20110615_aak970_gls_download_000_thresh10.trn", sep = ",")
@@ -35,7 +36,8 @@ for(i in 1:(length(gls_data$type)-1)){
                     units = "mins")
   t.dif <- as.numeric(t.dif)
   
-  # If time difference is < 24h add to dataframe
+  # If time difference is < 24h and consecutive transitions are of
+  # different type (one of sunset + one of sunrise) add to dataframe
   if(t.dif < 1440  &  gls_data$type[i] != gls_data$type[i+1] ){
     
     # First transtion time
